@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peringkat Saringan Cabaran Robot Tempur </title>
+    <style>
+        :root {
+            --primary: #0052cc;
+            --secondary: #00b386;
+            --danger: #ff5252;
+            --dark: #333;
+            --light: #f4f5f7;
+            --bg: #f4f6f9;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            user-select: none;
+        }
+
+        .quiz-container {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 650px;
+            width: 100%;
+        }
+
+        /* Kedai Layout Overrides */
+        .quiz-container.store-layout {
+            max-width: 1000px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #eceff1;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .timer {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--danger);
+            background: #fde8e8;
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+
+        .question-number {
+            font-size: 1.1rem;
+            color: #555;
+        }
+
+        .question-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background: #fff;
+            border: 2px solid #ced4da;
+            padding: 14px;
+            border-radius: 8px;
+            text-align: left;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .option-btn:hover {
+            background: #e9ecef;
+            border-color: #adb5bd;
+        }
+
+        .option-btn.selected {
+            background: #e7f1ff;
+            border-color: var(--primary);
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .blank-input, .text-input, .select-input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #ced4da;
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            margin-top: 10px;
+            background: #fff;
+        }
+
+        .footer {
+            margin-top: 25px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .next-btn, .start-btn, .lang-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .next-btn:hover, .start-btn:hover, .lang-btn:hover {
+            background: #003db3;
+        }
+
+        .next-btn:disabled {
+            background: #adb5bd;
+            cursor: not-allowed;
+        }
+
+        .result-screen, .welcome-screen {
+            text-align: center;
+            padding: 40px 10px;
+        }
+
+        .score {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin: 20px 0;
+        }
+
+        .welcome-title {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+
+        .time-taken {
+            font-size: 1.1rem;
+            margin-top: 10px;
+            color: #444;
+        }
+
+        .hint {
+            font-size: 0.95rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .lang-switch {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0 25px;
+        }
+
+        .lang-btn.active {
+            background: #003db3;
+            outline: 2px solid #dbe9ff;
+        }
+
+        .info-grid {
+            display: grid;
+            gap: 12px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .info-label {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #444;
+            margin-bottom: 6px;
+        }
+
+        /* --- STYLE KEDAI BAHAN --- */
+        header.store-header {
+            text-align: center;
+            background: linear-gradient(135deg, #002060, var(--primary));
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-top: 5px solid var(--primary);
+        }
+
+        .stat-card.spent { border-top-color: var(--danger); }
+        .stat-card.balance { border-top-color: var(--secondary); }
+        .stat-card.score-bonus { border-top-color: #ffcc00; }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            text-align: left;
+        }
+
+        @media (max-width: 768px) {
+            .main-content { grid-template-columns: 1fr; }
+        }
+
+        .store-section, .cart-section {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .item-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+        }
+
+        .item-card {
+            border: 1px solid #e1e4e8;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s;
+        }
+
+        .item-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .item-name {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 8px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .item-price {
+            color: var(--primary);
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            transition: background 0.2s;
+        }
+
+        .btn:hover { background-color: #003db3; }
+        .btn-danger { background-color: var(--danger); }
+        .btn-danger:hover { background-color: #cc3333; }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #edf0f2;
+        }
+
+        .cart-item-info { font-size: 14px; }
+
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 5px;
+        }
+
+        .btn-qty {
+            width: 25px;
+            height: 25px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-weight: 500;
+            display: none;
+        }
+
+        .alert-danger {
+            background-color: #ffebe9;
+            color: var(--danger);
+            border: 1px solid #ffc1bd;
+            display: block;
+        }
+
+        .checkout-btn {
+            background-color: var(--secondary);
+            margin-top: 15px;
+            font-size: 16px;
+            padding: 12px;
+        }
+        .checkout-btn:hover { background-color: #008060; }
+        .checkout-btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container" id="container-box">
+    <div id="quiz-box">
+        <div class="welcome-screen">
+            <h1 class="welcome-title" id="welcomeTitle">Selamat Datang</h1>
+            <p id="welcomeText">Peringkat Saringan 4.1R Cabaran Robot Tempur</p>
+
+            <div class="lang-switch">
+                <button class="lang-btn active" onclick="setLanguage('ms')">BM</button>
+                <button class="lang-btn" onclick="setLanguage('en')">EN</button>
+            </div>
+
+            <div class="info-grid">
+                <div>
+                    <div class="info-label" id="schoolLabel">Nama Sekolah</div>
+                    <input type="text" id="schoolName" class="text-input" placeholder="Contoh: SMK Jalan 1">
+                </div>
+                <div>
+                    <div class="info-label" id="groupLabel">Nama Kumpulan</div>
+                    <input type="text" id="groupName" class="text-input" placeholder="Contoh: Robot Cemerlang">
+                </div>
+                <div>
+                    <div class="info-label" id="stateLabel">Negeri / Wilayah</div>
+                    <select id="stateName" class="select-input">
+                        <option value="">-- Sila pilih --</option>
+                        <option value="Johor">Johor</option>
+                        <option value="Kedah">Kedah</option>
+                        <option value="Kelantan">Kelantan</option>
+                        <option value="Melaka">Melaka</option>
+                        <option value="Negeri Sembilan">Negeri Sembilan</option>
+                        <option value="Pahang">Pahang</option>
+                        <option value="Perak">Perak</option>
+                        <option value="Perlis">Perlis</option>
+                        <option value="Pulau Pinang">Pulau Pinang</option>
+                        <option value="Sabah">Sabah</option>
+                        <option value="Sarawak">Sarawak</option>
+                        <option value="Selangor">Selangor</option>
+                        <option value="Terengganu">Terengganu</option>
+                        <option value="Kuala Lumpur">Kuala Lumpur</option>
+                        <option value="Labuan">Labuan</option>
+                        <option value="Putrajaya">Putrajaya</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="start-btn" id="startBtn" onclick="startQuiz()">Mula</button>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    const quizData = [
+        // === SINGLE CHOICE (Soalan 1 - 40) ===
+        { type: "single", question: { ms: "Antara bahan berikut, yang manakah paling sesuai digunakan sebagai casing robot tempur untuk meningkatkan ketahanan lasak daripada impak senjata lawan?", en: "Which of the following materials is most suitable for a combat robot casing to increase durability against opponent weapon impacts?" }, options: [{ ms: "Polikarbonat (Polycarbonate)", en: "Polycarbonate" }, { ms: "Kadbod tebal", en: "Thick cardboard" }, { ms: "Plastik PLA biasa", en: "Standard PLA plastic" }, { ms: "Kepingan zink nipis", en: "Thin zinc sheet" }], answer: 0 },
+        { type: "single", question: { ms: "Untuk meningkatkan tork (daya tolakan) robot supaya lebih kuat menolak musuh, modifikasi mekanikal yang manakah perlu dilakukan?", en: "To increase torque (pushing power) for a stronger robot to push enemies, which mechanical modification should be made?" }, options: [{ ms: "Menggunakan sistem gear penurunan (reduction gear)", en: "Using a reduction gear system" }, { ms: "Menggunakan roda berdiameter lebih besar tanpa menukar gear", en: "Using a larger diameter wheel without changing gears" }, { ms: "Mengurangkan bilangan bateri", en: "Reducing the number of batteries" }, { ms: "Menanggalkan komponen pemacu motor", en: "Removing the motor driver component" }], answer: 0 },
+        { type: "single", question: { ms: "Bagaimanakah cara menaikkan kelajuan (speed) motor DC tanpa menukar motor tersebut?", en: "How can you increase the speed of a DC motor without changing the motor itself?" }, options: [{ ms: "Meningkatkan voltan bekalan kuasa mengikut had pemacu motor", en: "Increasing the power supply voltage within the motor driver limits" }, { ms: "Menambahkan berat robot", en: "Increasing the robot weight" }, { ms: "Menggunakan minyak pelincir yang lebih pekat", en: "Using thicker lubricating oil" }, { ms: "Menurunkan nilai arus bateri", en: "Lowering the battery current value" }], answer: 0 },
+        { type: "single", question: { ms: "Komponen elektronik manakah yang berfungsi mengalirkan arus tinggi daripada bateri ke motor berdasarkan isyarat pengawal mikro?", en: "Which electronic component functions to channel high current from the battery to the motors based on microcontroller signals?" }, options: [{ ms: "Pemacu motor (Motor Driver)", en: "Motor Driver" }, { ms: "Penderia Ultrasonik", en: "Ultrasonic Sensor" }, { ms: "Buzzer Piezo", en: "Piezo Buzzer" }, { ms: "Suis Tekan", en: "Push Switch" }], answer: 0 },
+        { type: "single", question: { ms: "Apakah kesan penggantian tayar getah biasa kepada tayar jenis silikon bertekstur tinggi (high grip) pada robot?", en: "What is the effect of replacing standard rubber tires with high-grip textured silicon tires on the robot?" }, options: [{ ms: "Mengurangkan slip dan menambah daya tarikan (traction) semasa menolak", en: "Reduces slippage and increases traction when pushing" }, { ms: "Mengurangkan kelajuan putaran motor", en: "Reduces the motor rotation speed" }, { ms: "Menjimatkan penggunaan kapasiti bateri", en: "Saves battery capacity consumption" }, { ms: "Menghalang penderia daripada berfungsi", en: "Prevents sensors from functioning" }], answer: 0 },
+        { type: "single", question: { ms: "Mengapakah penggunaan bahan aluminium gred industri (seperti 6061) lebih disyorkan untuk rangka utama robot tempur berbanding plastik 3D print?", en: "Why is the use of industrial-grade aluminium (such as 6061) more recommended for a combat robot's main frame compared to 3D printed plastic?" }, options: [{ ms: "Mempunyai nisbah kekuatan-kepada-berat yang tinggi", en: "It has a high strength-to-weight ratio" }, { ms: "Lebih mudah lentur dan patah", en: "It is easier to bend and break" }, { ms: "Ia bertindak sebagai penebat elektrik yang baik", en: "It acts as a good electrical insulator" }, { ms: "Ia mengurangkan kelajuan keseluruhan robot", en: "It reduces the overall speed of the robot" }], answer: 0 },
+        { type: "single", question: { ms: "Apakah jenis bateri yang paling sesuai untuk robot tempur yang memerlukan arus pelepasan (discharge rate) yang tinggi dan ringan?", en: "What type of battery is most suitable for combat robots requiring a high discharge rate and lightweight properties?" }, options: [{ ms: "Bateri Litium Polimer (LiPo)", en: "Lithium Polymer (LiPo) Battery" }, { ms: "Bateri Sel Kering Karbon-Zink", en: "Carbon-Zinc Dry Cell Battery" }, { ms: "Bateri Plumbum-Asid (Lead-Acid)", en: "Lead-Acid Battery" }, { ms: "Bateri Ni-Cad lama", en: "Old Ni-Cad battery" }], answer: 0 },
+        { type: "single", question: { ms: "Dalam aspek reka bentuk kssm RBT, pusat graviti yang rendah (low center of gravity) pada robot tempur bertujuan untuk...", en: "In the context of RBT design, a low center of gravity on a combat robot aims to..." }, options: [{ ms: "Memastikan robot lebih stabil dan sukar diterbalikkan oleh musuh", en: "Ensure the robot is more stable and harder to be flipped by enemies" }, { ms: "Menambahkan kelajuan putaran senjata berpusing", en: "Increase the rotational speed of spinning weapons" }, { ms: "Membuatkan penderia jarak berfungsi lebih jauh", en: "Make the distance sensor function further away" }, { ms: "Mengurangkan tork pemanduan roda", en: "Reduce the wheel drive torque" }], answer: 0 },
+        { type: "single", question: { ms: "Sekiranya motor robot anda cepat panas dan berhenti berfungsi semasa bertempur, apakah pengubahsuaian yang perlu dilakukan pada sistem litar?", en: "If your robot motor overheats quickly and stops functioning during combat, what modification should be made to the circuit system?" }, options: [{ ms: "Memasang penyerap haba (heat sink) atau kipas penyejuk pada motor/pemacu", en: "Installing a heat sink or cooling fan on the motor/driver" }, { ms: "Menambahkan bilangan penderia", en: "Increasing the number of sensors" }, { ms: "Menukar kod atur cara kepada pemasa yang lebih pendek", en: "Changing the program code to shorter timers" }, { ms: "Mengurangkan ketebalan wayar utama", en: "Reducing the thickness of the main wires" }], answer: 0 },
+        { type: "single", question: { ms: "Apakah peranan mengekod fungsi PWM (Pulse Width Modulation) dalam pengaturcaraan robot tempur?", en: "What is the role of coding PWM (Pulse Width Modulation) functions in combat robot programming?" }, options: [{ ms: "Mengawal kelajuan motor secara berperingkat", en: "Controlling motor speed progressively" }, { ms: "Menukar warna lampu LED hiasan", en: "Changing the color of decorative LED lights" }, { ms: "Membaca data digital daripada suis had", en: "Reading digital data from limit switches" }, { ms: "Menghantar isyarat kecemasan ke komputer", en: "Sending emergency signals to a computer" }], answer: 0 },
+        { type: "single", question: { ms: "Antara berikut, sambungan mekanikal yang manakah paling tahan lasak daripada getaran melampau ketika perlanggaran robot?", en: "Which of the following mechanical connections is the most durable against extreme vibrations during robot collisions?" }, options: [{ ms: "Skru dengan nat kunci nilon (nyloc nut) dan pengunci benang (threadlocker)", en: "Screws with nyloc nuts and threadlocker fluid" }, { ms: "Ikatan menggunakan pengikat kabel (cable tie) plastik", en: "Binding using plastic cable ties" }, { ms: "Sambungan menggunakan gam lilin (hot glue gun)", en: "Connections using hot glue gun wax" }, { ms: "Pelekat pita selofan biasa", en: "Standard cellophane tape adhesive" }], answer: 0 },
+        { type: "single", question: { ms: "Bagaimanakah struktur berbentuk segi tiga (triangulation) membantu kekuatan mekanikal robot tempur?", en: "How does triangulation structure help the mechanical strength of a combat robot?" }, options: [{ ms: "Mengagihkan daya impak perlanggaran dengan lebih cekap ke seluruh rangka", en: "Distributes collision impact force more efficiently across the frame" }, { ms: "Mengurangkan penggunaan arus elektrik pada bateri", en: "Reduces electrical current usage on the battery" }, { ms: "Menjadikan robot bergerak secara rawak", en: "Makes the robot move randomly" }, { ms: "Memudahan proses pengaturcaraan pengawal mikro", en: "Simplifies the microcontroller programming process" }], answer: 0 },
+        { type: "single", question: { ms: "Apakah fungsi utama menambah pelindung (wedge/skirt) nipis yang rapat ke lantai di bahagian hadapan robot tempur?", en: "What is the main function of adding a low wedge or skirt close to the floor at the front of a combat robot?" }, options: [{ ms: "Menyusup di bawah robot musuh untuk mengangkat dan mengurangkan grip mereka", en: "To get under the enemy robot to lift them and reduce their grip" }, { ms: "Menambahkan kelajuan maksimum robot", en: "To increase the maximum speed of the robot" }, { ms: "Sebagai antena tambahan bagi menangkap isyarat kawalan", en: "As an additional antenna to capture control signals" }, { ms: "Memantulkan cahaya lampu ke arah penderia lawan", en: "To reflect light towards opponent sensors" }], answer: 0 },
+        { type: "single", question: { ms: "Mengapakah wayar bersaiz tebal (AWG rendah) digunakan untuk sistem pemacu kuasa berbanding wayar litar penderia?", en: "Why are thick wires (low AWG) used for the power drive system compared to sensor circuit wires?" }, options: [{ ms: "Untuk menampung aliran arus tinggi tanpa mencairkan penebat wayar", en: "To accommodate high current flow without melting the wire insulation" }, { ms: "Untuk mengurangkan berat keseluruhan robot tempur", en: "To reduce the overall weight of the combat robot" }, { ms: "Untuk membolehkan isyarat data bergerak lebih laju", en: "To allow data signals to travel faster" }, { ms: "Kerana ia lebih mudah ditiup angin", en: "Because it is easier to blow in the wind" }], answer: 0 },
+        { type: "single", question: { ms: "Jika anda ingin menukar jenis pemacu bagi meningkatkan kepantasan gerak balas pusingan robot di gelanggang, sistem manakah terbaik?", en: "If you want to change the drive type to increase the robot's turning response speed in the arena, which system is best?" }, options: [{ ms: "Sistem pemanduan pembezaan dua motor (Differential drive)", en: "Two-motor differential drive system" }, { ms: "Sistem satu motor pemacu belakang sahaja", en: "Single rear-motor drive system only" }, { ms: "Sistem stereng mekanikal kereta (Ackermann)", en: "Mechanical car steering system (Ackermann)" }, { ms: "Sistem takal getah tanpa motor", en: "Rubber pulley system without a motor" }], answer: 0 },
+        { type: "single", question: { ms: "Dalam silibus RBT, mikropengawal (microcontroller) dikategorikan sebagai peranti yang melakukan proses...", en: "In the RBT syllabus, a microcontroller is categorized as a device that performs the process of..." }, options: [{ ms: "Memproses data dan arahan (Process)", en: "Processing data and instructions (Process)" }, { ms: "Mengenalan perubahan persekitaran (Input)", en: "Detecting environmental changes (Input)" }, { ms: "Menggerakkan komponen mekanikal (Output)", en: "Moving mechanical components (Output)" }, { ms: "Membekalkan tenaga elektrik (Power)", en: "Supplying electrical power (Power)" }], answer: 0 },
+        { type: "single", question: { ms: "Antara komponen mekanikal berikut, yang manakah berfungsi untuk memindahkan kuasa daripada aci motor ke aci roda yang terletak berjauhan?", en: "Which of the following mechanical components functions to transfer power from the motor shaft to a distant wheel shaft?" }, options: [{ ms: "Tali sawat dan takal (Belt and pulley)", en: "Belt and pulley" }, { ms: "Skru dan nat (Screw and nut)", en: "Screw and nut" }, { ms: "Galas bebola (Ball bearing)", en: "Ball bearing" }, { ms: "Gandin (Axle)", en: "Axle" }], answer: 0 },
+        { type: "single", question: { ms: "Apakah fungsi utama peranti input penderia suis had (limit switch) apabila dipasang pada robot?", en: "What is the main function of a limit switch input device when installed on a robot?" }, options: [{ ms: "Mengesan sentuhan fizikal atau pelanggaran (bumper)", en: "Detecting physical contact or collision (bumper)" }, { ms: "Mengukur jarak objek tanpa sentuh", en: "Measuring object distance without contact" }, { ms: "Mengawal arah putaran motor DC", en: "Controlling the rotation direction of a DC motor" }, { ms: "Menghitung jumlah pusingan roda robot", en: "Counting the number of robot wheel rotations" }], answer: 0 },
+        { type: "single", question: { ms: "Suis jenis manakah yang paling sesuai digunakan sebagai suis utama (Master Switch) untuk memutuskan keseluruhan bekalan kuasa robot?", en: "Which type of switch is most suitable to be used as a master switch to cut off the entire robot power supply?" }, options: [{ ms: "Suis tekan buka/tutup (Toggle/Rockers switch)", en: "Toggle/Rockers switch" }, { ms: "Suis mikro (Micro switch)", en: "Micro switch" }, { ms: "Suis penderia cahaya (LDR)", en: "Light dependent resistor switch (LDR)" }, { ms: "Suis kecutan haba", en: "Heat shrink switch" }], answer: 0 },
+        { type: "single", question: { ms: "Apakah tujuan utama membuat lakaran perkembangan idea dalam fasa awal reka bentuk robot?", en: "What is the main purpose of creating idea development sketches in the early phases of robot design?" }, options: [{ ms: "Mendapatkan rupa bentuk terbaik dan susunan komponen yang efisien", en: "Obtaining the best appearance shape and efficient component layout" }, { ms: "Menentukan harga jualan robot di pasaran", en: "Determining the market selling price of the robot" }, { ms: "Menguji ketahanan litar elektronik daripada litar pintas", en: "Testing the electronic circuit durability against short circuits" }, { ms: "Menghasilkan kod atur cara mikropengawal secara automatik", en: "Generating microcontroller program codes automatically" }], answer: 0 },
+        
+        // Soalan Baharu (Single Choice)
+        { type: "single", question: { ms: "Antara teknologi pembuatan berikut, yang manakah paling cepat untuk membina prototaip plastik 3D bagi komponen dalaman robot?", en: "Which of the following manufacturing technologies is the fastest to build a 3D plastic prototype for internal robot components?" }, options: [{ ms: "Fasa Pemendapan Terlakas (FDM 3D Printing)", en: "Fused Deposition Modeling (FDM 3D Printing)" }, { ms: "Mesin CNC Larik", en: "CNC Lathe Machine" }, { ms: "Tuangan acuan suntikan", en: "Injection molding casting" }, { ms: "Pahat tangan tradisional", en: "Traditional hand carving" }], answer: 0 },
+        { type: "single", question: { ms: "Apakah unit standard antarabangsa (SI) bagi mengukur daya tork pada sistem motor robot?", en: "What is the international standard (SI) unit used to measure torque in robot motor systems?" }, options: [{ ms: "Newton Meter (Nm)", en: "Newton Meter (Nm)" }, { ms: "Watt (W)", en: "Watt (W)" }, { ms: "Volt (V)", en: "Volt (V)" }, { ms: "Ampere (A)", en: "Ampere (A)" }], answer: 0 },
+        { type: "single", question: { ms: "Dalam reka bentuk elektrik RBT, litar pintas (short circuit) berlaku disebabkan oleh...", en: "In RBT electrical design, a short circuit occurs due to..." }, options: [{ ms: "Talian positif bertemu terus dengan talian negatif tanpa beban", en: "The positive line meeting the negative line directly without a load" }, { ms: "Nilai perintang yang terlalu tinggi dalam litar", en: "Too high a resistor value in the circuit" }, { ms: "Bateri kehilangan voltan sepenuhnya", en: "The battery losing its voltage completely" }, { ms: "Penggunaan wayar bersaiz terlalu tebal", en: "Using a wire size that is too thick" }], answer: 0 },
+        { type: "single", question: { ms: "Apakah peranti elektronik yang digunakan untuk melindungi komponen hiliran daripada arus berlebihan?", en: "Which electronic device is used to protect downstream components from excessive current?" }, options: [{ ms: "Fius (Fuse)", en: "Fuse" }, { ms: "Kapasitor", en: "Capacitor" }, { ms: "Transistor", en: "Transistor" }, { ms: "Pemuat", en: "Inductor" }], answer: 0 },
+        { type: "single", question: { ms: "Mekanisme pergerakan mekanikal yang menukar gerakan putaran kepada gerakan lurus (linear) ialah...", en: "The mechanical movement mechanism that converts rotational movement into linear movement is..." }, options: [{ ms: "Gear serong dan aci", en: "Bevel gear and shaft" }, { ms: "Sistem rak dan pinis (Rack and pinion)", en: "Rack and pinion system" }, { ms: "Sistem takal berganda", en: "Double pulley system" }, { ms: "Roda taji biasa", en: "Standard spur wheel" }], answer: 1 },
+        { type: "single", question: { ms: "Apakah jenis penderia yang mengukur kelajuan putaran sebenar roda bagi kawalan maklum balas?", en: "What type of sensor measures the actual rotational speed of the wheels for feedback control?" }, options: [{ ms: "Penderia Enkod Putar (Rotary Encoder)", en: "Rotary Encoder Sensor" }, { ms: "Penderia Suhu LM35", en: "LM35 Temperature Sensor" }, { ms: "Penderia Inframerah Halangan", en: "Infrared Obstacle Sensor" }, { ms: "Penderia Kelembapan", en: "Humidity Sensor" }], answer: 0 },
+        { type: "single", question: { ms: "Mengapakah roda jenis 'Mecanum' kurang sesuai digunakan pada arena pertempuran robot jenis menolak?", en: "Why are 'Mecanum' wheels less suitable for use in a pushing-type robot combat arena?" }, options: [{ ms: "Ia mempunyai daya tarikan (friction/grip) ke hadapan yang lebih rendah berbanding roda biasa", en: "It has lower forward traction (friction/grip) compared to standard wheels" }, { ms: "Ia tidak boleh bergerak ke semua arah", en: "It cannot move in omnidirectional ways" }, { ms: "Ia memerlukan voltan yang jauh lebih tinggi", en: "It requires a much higher voltage" }, { ms: "Ia tidak boleh dipasang pada motor DC", en: "It cannot be mounted on DC motors" }], answer: 0 },
+        { type: "single", question: { ms: "Apakah fungsi utama bagi diod yang dipasang secara selari terbalik (flyback diode) pada motor DC?", en: "What is the main function of a diode connected in reverse parallel (flyback diode) across a DC motor?" }, options: [{ ms: "Melindungi litar pemandu daripada lonjakan voltan tinggi (back-EMF) semasa motor berhenti", en: "Protecting the driver circuit from high voltage spikes (back-EMF) when the motor stops" }, { ms: "Meningkatkan kelajuan maksimum putaran aci motor", en: "Increasing the maximum rotational speed of the motor shaft" }, { ms: "Menukar arus terus bateri menjadi arus ulang-alik", en: "Converting DC battery current into AC current" }, { ms: "Bertindak sebagai lampu penunjuk arah motor", en: "Acting as a motor direction indicator light" }], answer: 0 },
+        { type: "single", question: { ms: "Dalam kaedah penyambungan elektronik, apakah fungsi utama tiub kecut haba (heat shrink tube)?", en: "In electronic connection methods, what is the main function of a heat shrink tube?" }, options: [{ ms: "Menebat sambungan wayar daripada litar pintas dan mengukuhkan sambungan", en: "Insulating wire joints from short circuits and reinforcing connections" }, { ms: "Membekalkan tenaga haba untuk mencairkan timah pateri", en: "Supplying heat energy to melt soldering lead" }, { ms: "Mengurangkan rintangan elektrik pada kabel kuasa", en: "Reducing electrical resistance on power cables" }, { ms: "Menghubungkan aci mekanikal motor ke roda", en: "Connecting the motor mechanical shaft to the wheel" }], answer: 0 },
+        { type: "single", question: { ms: "Apakah nama bagi struktur mekanikal yang menggunakan rantai untuk memindahkan kuasa tanpa gelinciran?", en: "What is the name of the mechanical structure that uses chains to transfer power without slippage?" }, options: [{ ms: "Gegancu dan rantai (Sprocket and chain)", en: "Sprocket and chain" }, { ms: "Takal dan tali sawat flat", en: "Pulley and flat belt" }, { ms: "Gear heliks kembar", en: "Double helix gear" }, { ms: "Sistem aci engkol", en: "Crankshaft system" }], answer: 0 },
+        { type: "single", question: { ms: "Pilih perisian reka bentuk berbantu komputer (CAD) yang sering digunakan dalam silibus RBT untuk membina model 3D.", en: "Select the computer-aided design (CAD) software frequently used in the RBT syllabus to build 3D models." }, options: [{ ms: "Tinkercad / Fusion 360", en: "Tinkercad / Fusion 360" }, { ms: "Microsoft Word", en: "Microsoft Word" }, { ms: "Adobe Photoshop", en: "Adobe Photoshop" }, { ms: "Notepad++", en: "Notepad++" }], answer: 0 },
+        { type: "single", question: { ms: "Apakah jenis isyarat penderia suis mikro (micro switch) apabila ditekan?", en: "What type of sensor signal is produced by a micro switch when pressed?" }, options: [{ ms: "Isyarat Digital (HIGH/LOW)", en: "Digital Signal (HIGH/LOW)" }, { ms: "Isyarat Analog berterusan", en: "Continuous Analog Signal" }, { ms: "Isyarat Frekuensi Radio", en: "Radio Frequency Signal" }, { ms: "Isyarat Gelombang Bunyi", en: "Sound Wave Signal" }], answer: 0 },
+        { type: "single", question: { ms: "Mengapakah reka bentuk casis robot berbentuk bulat atau condong (sloped armour) sangat berkesan dalam pertempuran?", en: "Why is a round or sloped chassis design (sloped armour) highly effective in combat?" }, options: [{ ms: "Memesongkan arah daya impak daripada senjata jenis pemukul lawan", en: "Deflecting the impact force direction from opponent striking weapons" }, { ms: "Meningkatkan berat robot tanpa menambah bahan casis", en: "Increasing robot weight without adding chassis materials" }, { ms: "Memudahkan pengekodan fungsi pergerakan autonomi", en: "Simplifying the coding of autonomous movement functions" }, { ms: "Mengurangkan penggunaan arus elektrik litar pemacu", en: "Reducing electrical current usage of the driver circuit" }], answer: 0 },
+        { type: "single", question: { ms: "Sistem elektronik yang menggunakan terminal pembumian (grounding) sepunya bertujuan untuk...", en: "An electronic system that uses a common grounding terminal aims to..." }, options: [{ ms: "Memastikan semua komponen mempunyai rujukan voltan 0V yang stabil dan sama", en: "Ensure all components have the same stable 0V voltage reference" }, { ms: "Meningkatkan voltan keluaran daripada pek bateri LiPo", en: "Increasing the output voltage from the LiPo battery pack" }, { ms: "Memutuskan litar elektrik secara automatik jika terlalu panas", en: "Cutting off the electrical circuit automatically if overheated" }, { ms: "Mengurangkan kelajuan tindak balas kawalan jauh nirkabel", en: "Reducing the response speed of wireless remote controls" }], answer: 0 },
+        { type: "single", question: { ms: "Dalam reka bentuk produk RBT, 'fungsi' dikategorikan berdasarkan...", en: "In RBT product design, 'function' is categorized based on..." }, options: [{ ms: "Tujuan utama produk itu dicipta untuk menyelesaikan masalah", en: "The primary purpose the product was created to solve a problem" }, { ms: "Berapa lama produk itu boleh disimpan di dalam stor", en: "How long the product can be kept in a storeroom" }, { ms: "Warna luaran estetika produk", en: "The external aesthetic color of the product" }, { ms: "Bahan pembungkusan luar produk", en: "The external packaging material of the product" }], answer: 0 },
+        { type: "single", question: { ms: "Bahan pengikat manakah yang memerlukan pistol pemanas elektrik untuk mencairkannya dalam proses cantuman pantas?", en: "Which binding material requires an electric heating gun to melt it during a quick jointing process?" }, options: [{ ms: "Rod gam panas (Hot melt glue)", en: "Hot melt glue stick" }, { ms: "Gam kayu PVA", en: "PVA wood glue" }, { ms: "Simen pelarut paip PVC", en: "PVC pipe solvent cement" }, { ms: "Pita pelekat kertas", en: "Masking tape" }], answer: 0 },
+        { type: "single", question: { ms: "Dalam sistem kawalan mikropengawal, pin ADC (Analog to Digital Converter) digunakan untuk...", en: "In a microcontroller control system, ADC (Analog to Digital Converter) pins are used to..." }, options: [{ ms: "Membaca nilai voltan berubah daripada penderia analog", en: "Reading changing voltage values from analog sensors" }, { ms: "Menghasilkan output gelombang kuasa tinggi ke motor DC", en: "Generating high power wave outputs to DC motors" }, { ms: "Memutuskan litar bateri apabila berlaku litar pintas", en: "Disconnecting the battery circuit when a short circuit occurs" }, { ms: "Menyimpan data kod pengaturcaraan secara kekal", en: "Storing programming code data permanently" }], answer: 0 },
+        { type: "single", question: { ms: "Apakah kelemahan utama struktur mekanikal yang menggunakan cantuman skru tanpa nat kunci nilon?", en: "What is the main disadvantage of a mechanical structure that uses screw joints without nylon lock nuts?" }, options: [{ ms: "Skru mudah longgar akibat getaran mekanikal berterusan", en: "Screws easily loosen due to continuous mechanical vibrations" }, { ms: "Berat struktur bertambah dua kali ganda", en: "The weight of the structure doubles" }, { ms: "Ia tidak boleh dibuka semula selepas dipasang", en: "It cannot be reopened after being installed" }, { ms: "Ia mengurangkan kekonduksian elektrik rangka besi", en: "It reduces the electrical conductivity of the iron frame" }], answer: 0 },
+        { type: "single", question: { ms: "Apakah kegunaan alat pengukur 'Multimeter' digital dalam fasa pengujian litar robot?", en: "What is the use of a digital 'Multimeter' during the robot circuit testing phase?" }, options: [{ ms: "Mengukur voltan, arus, dan kesinambungan (continuity) litar", en: "Measuring voltage, current, and circuit continuity" }, { ms: "Memotong kepingan plastik akrilik casis", en: "Cutting acrylic plastic sheets of the chassis" }, { ms: "Memuat naik kod fail .hex ke cip mikropengawal", en: "Uploading .hex file codes to the microcontroller chip" }, { ms: "Mengukur berat total keseluruhan robot tempur", en: "Measuring the total weight of the combat robot" }], answer: 0 },
+        { type: "single", question: { ms: "Mekanisme gear yang menukar arah paksi putaran sebanyak 90 darjah ialah...", en: "The gear mechanism that changes the rotational axis direction by 90 degrees is..." }, options: [{ ms: "Gear serong (Bevel gear)", en: "Bevel gear" }, { ms: "Gear taji (Spur gear)", en: "Spur gear" }, { ms: "Gear dalaman", en: "Internal gear" }, { ms: "Gear rak", en: "Rack gear" }], answer: 0 },
+
+        // === MULTI CHOICE (Soalan 41 - 76) ===
+        { type: "multi", question: { ms: "Pilih kaedah-kaedah yang berkesan untuk menjadikan robot tempur lebih LAJU. (Pilih semua yang betul)", en: "Select effective methods to make a combat robot FASTER. (Select all that apply)" }, options: [{ ms: "Menggunakan motor ber-RPM tinggi", en: "Using a high RPM motor" }, { ms: "Mengurangkan berat komponen yang tidak kritikal", en: "Reducing the weight of non-critical components" }, { ms: "Menggunakan roda berdiameter lebih besar", en: "Using larger diameter wheels" }, { ms: "Menambahkan beban timah pada rangka belakang", en: "Adding lead ballast to the rear frame" }], answers: [0, 1, 2] },
+        { type: "multi", question: { ms: "Apakah pengubahsuaian yang boleh meningkatkan KEKUATAN struktur mekanikal robot daripada rosak? (Pilih semua yang betul)", en: "What modifications can increase the structural STRENGTH of a robot from damage? (Select all that apply)" }, options: [{ ms: "Menggunakan teknik kimpalan (welding) pada sambungan logam", en: "Using welding techniques on metal joints" }, { ms: "Menambah topang dalaman (internal bracing) pada bucu rangka", en: "Adding internal bracing at frame corners" }, { ms: "Menukar plat nipis kepada plat keluli atau titanium", en: "Changing thin plates to steel or titanium plates" }, { ms: "Menggunakan perekat kertas (masking tape)", en: "Using masking tape" }], answers: [0, 1, 2] },
+        { type: "multi", question: { ms: "Antara berikut, yang manakah membolehkan robot menjadi TAHAN LASAK daripada masalah gangguan elektrik semasa perlanggaran? (Pilih semua yang betul)", en: "Which of the following allows a robot to be DURABLE against electrical issues during collisions? (Select all that apply)" }, options: [{ ms: "Memasang kapasitor penapis hingar (noise filter) pada motor DC", en: "Installing noise filter capacitors on DC motors" }, { ms: "Menggunakan pendakap bateri yang kukuh (battery mount) berciri kusyen", en: "Using a secure, cushioned battery mount" }, { ms: "Membiarkan wayar terdedah dan berjuntai", en: "Leaving wires exposed and dangling" }, { ms: "Membuat pembalut pelindung haba/getaran pada penyambung wayar", en: "Making protective heat/vibration wraps on wire connectors" }], answers: [0, 1, 3] },
+        { type: "multi", question: { ms: "Reka bentuk sistem roda yang manakah memberikan kelebihan ketahanan lasak dan kestabilan semasa bertempur? (Pilih semua yang betul)", en: "Which wheel system designs provide durability and stability advantages during combat? (Select all that apply)" }, options: [{ ms: "Roda yang dilindungi sepenuhnya di dalam sarung casing (enclosed wheels)", en: "Wheels fully enclosed inside the casing" }, { ms: "Sistem pacuan 4 roda (4WD) berbanding pacuan 2 roda (2WD)", en: "A 4-wheel drive (4WD) system compared to 2-wheel drive (2WD)" }, { ms: "Roda plastik nipis tanpa lapisan getah", en: "Thin plastic wheels without a rubber layer" }, { ms: "Menggunakan aci roda (wheel shaft) yang disokong oleh galas bebola (bearing)", en: "Using a wheel shaft supported by ball bearings" }], answers: [0, 1, 3] },
+        { type: "multi", question: { ms: "Apakah parameter dalam pengaturcaraan (coding) yang boleh diubah untuk membaiki kecekapan pergerakan robot? (Pilih semua yang betul)", en: "What parameters in programming (coding) can be modified to improve robot movement efficiency? (Select all that apply)" }, options: [{ ms: "Nilai pemalar pecutan (acceleration ramp) dalam kod", en: "Acceleration ramp constant values in the code" }, { ms: "Nilai had maksimum output PWM", en: "The maximum limit values of PWM output" }, { ms: "Kadar maklum balas penderia (sensor sampling rate)", en: "The sensor sampling rate" }, { ms: "Nama pemboleh ubah hiasan", en: "Decorative variable names" }], answers: [0, 1, 2] },
+        { type: "multi", question: { ms: "Antara berikut, yang manakah merupakan bahan casing gred ringan tetapi kuat untuk robot? (Pilih semua yang betul)", en: "Which of the following are lightweight yet strong casing materials for a robot? (Select all that apply)" }, options: [{ ms: "Serat karbon (Carbon fiber)", en: "Carbon fiber" }, { ms: "Aluminium gred T6", en: "T6 grade aluminium" }, { ms: "Polistirena (Polystyrene) nipis", en: "Thin polystyrene" }, { ms: "Plastik kejuruteraan POM (Delrin)", en: "POM engineering plastic (Delrin)" }], answers: [0, 1, 3] },
+        { type: "multi", question: { ms: "Pilih komponen elektrikal yang wajib dinaik taraf jika anda menukar motor yang jauh lebih besar dan kuat. (Pilih semua yang betul)", en: "Select electrical components that must be upgraded if you switch to a much larger and stronger motor. (Select all that apply)" }, options: [{ ms: "Pemacu motor (Motor Driver) ber-Amperage tinggi", en: "High Amperage motor driver" }, { ms: "Kabel pendawaian utama yang lebih tebal", en: "Thicker main wiring cables" }, { ms: "Bateri dengan keupayaan kadar pelepasan (C-rating) tinggi", en: "Battery with a high discharge rate (C-rating)" }, { ms: "Lampu LED indikator kuasa", en: "Power indicator LED light" }], answers: [0, 1, 2] },
+        { type: "multi", question: { ms: "Apakah modifikasi pada bahagian mekanikal penggelek/senjata jenis berpusing (spinner) untuk impak maksima? (Pilih semua yang betul)", en: "What modifications on spinning weapons can maximize impact power? (Select all that apply)" }, options: [{ ms: "Menumpukan jisim berat di bahagian hujung bilah senjata", en: "Concentrating weight mass at the tip of the weapon blade" }, { ms: "Menggunakan motor tanpa berus (brushless motor) berkelajuan tinggi", en: "Using a high-speed brushless motor" }, { ms: "Menggunakan tali sawat (belt drive) tahan slip untuk menyerap hentakan balik", en: "Using a slip-resistant belt drive to absorb kickback shock" }, { ms: "Membuat bilah daripada kayu lapis", en: "Making blades out of plywood" }], answers: [0, 1, 2] },
+        { type: "multi", question: { ms: "Bagaimanakah cara mengelakkan kerosakan mikropengawal (seperti Arduino) akibat kejutan mekanikal? (Pilih semua yang betul)", en: "How do you prevent microcontroller damage (such as Arduino) due to mechanical shock? (Select all that apply)" }, options: [{ ms: "Menggunakan pelapik getah penyerap hentakan (rubber dampers/standoffs)", en: "Using rubber shock-absorbing pads (rubber dampers/standoffs)" }, { ms: "Meletakkan span lembut di bawah papan litar utama", en: "Placing a soft sponge underneath the main circuit board" }, { ms: "Mengikatnya terus ke rangka besi tanpa sebarang pelapik", en: "Bolting it directly to the metal frame without any padding" }, { ms: "Menggunakan casing khas cetakan 3D jenis TPU (fleksibel)", en: "Using a special 3D printed TPU (flexible) casing" }], answers: [0, 1, 3] },
+        { type: "multi", question: { ms: "Pilih ciri-ciri penderia yang dimodifikasi untuk bertahan dalam persekitaran pertempuran lasak. (Pilih semua yang betul)", en: "Select modified sensor features to survive in a rugged combat environment. (Select all that apply)" }, options: [{ ms: "Mempunyai pelindung fizikal daripada terkena serpihan", en: "Having physical shielding against debris" }, { ms: "Kedudukan penderia tersorok sedikit ke dalam rangka robot", en: "Sensor positioning slightly recessed into the robot frame" }, { ms: "Menggunakan gam silikon pada penyambung soket penderia agar tidak longgar", en: "Using silicone glue on sensor socket connectors to prevent loosening" }, { ms: "Diletakkan di bahagian paling luar tanpa penutup", en: "Placed at the outermost part without a cover" }], answers: [0, 1, 2] },
+        { type: "multi", question: { ms: "Apakah kelebihan utama menggunakan sistem pemacu 'Direct Drive' (Roda dipasang terus pada aci kotak gear)? (Pilih semua yang betul)", en: "What are the main advantages of using a 'Direct Drive' system (Wheels mounted directly on the gearbox shaft)? (Select all that apply)" }, options: [{ ms: "Mengurangkan kehilangan tenaga akibat geseran rantaian/takal", en: "Reduces energy loss due to chain/pulley friction" }, { ms: "Reka bentuk susunan komponen mekanikal menjadi lebih ringkas", en: "The layout design of mechanical components becomes simpler" }, { ms: "Menghapuskan risiko rantaian tercabut semasa perlanggaran", en: "Eliminates the risk of chain derailment during collisions" }, { ms: "Melindungi aci motor daripada bengkok sepenuhnya", en: "Protects the motor shaft from bending completely" }], answers: [0, 1, 2] },
+        { type: "multi", question: { ms: "Antara berikut, tindakan manakah yang boleh menyebabkan robot KELIHATAN kuat tetapi sebenarnya menjadi LEMAH? (Pilih semua yang betul)", en: "Which of the following actions can make a robot LOOK strong but actually become WEAK? (Select all that apply)" }, options: [{ ms: "Menambah aksesori besar yang berat tetapi rapuh", en: "Adding large, heavy but brittle accessories" }, { ms: "Meningkatkan berat sehingga melebihi had kuasa tork motor pemanduan", en: "Increasing weight beyond the drive motor's torque capacity limit" }, { ms: "Membuat struktur robot terlalu tinggi sehingga tidak stabil", en: "Making the robot structure too high, causing instability" }, { ms: "Menggunakan nat jenis nyloc pada bahagian roda", en: "Using nyloc nuts on the wheel parts" }], answers: [0, 1, 2] },
+        { type: "multi", question: { ms: "Pilih amalan penyelenggaraan yang menjamin robot kekal tahan lasak sepanjang kejohanan. (Pilih semua yang betul)", en: "Select maintenance practices that guarantee the robot remains durable throughout the tournament. (Select all that apply)" }, options: [{ ms: "Memeriksa ketat atau longgarnya skru selepas setiap pusingan perlawanan", en: "Checking the tightness of screws after every match round" }, { ms: "Memastikan bateri dicas dalam keadaan optimum (bukan overdischarge)", en: "Ensuring the battery is charged optimally (not overdischarged)" }, { ms: "Menyembur minyak pelincir pada bahagian gear yang bergeser", en: "Spraying lubricant on sliding gear parts" }, { ms: "Membiarkan serpihan logam melekat pada litar", en: "Leaving metal debris stuck on the circuit" }], answers: [0, 1, 2] },
+        { type: "multi", question: { ms: "Apakah modifikasi yang sesuai untuk meningkatkan aspek ketahanan kuasa (endurance) robot? (Pilih semua yang betul)", en: "What modifications are suitable to improve the power endurance aspect of a robot? (Select all that apply)" }, options: [{ ms: "Menggunakan bateri dengan nilai mAh yang lebih tinggi", en: "Using a battery with a higher mAh value" }, { ms: "Mengoptimumkan kod atur cara agar motor berhenti apabila tidak bergerak", en: "Optimizing the program code to stop motors when stationary" }, { ms: "Menggunakan sistem bearing yang mengurangkan geseran mekanikal", en: "Using bearing systems that reduce mechanical friction" }, { ms: "Menambahkan bilangan lampu hiasan voltan tinggi", en: "Adding high-voltage decorative lights" }], answers: [0, 1, 2] },
+        { type: "multi", question: { ms: "Modifikasi struktur hadapan yang manakah boleh merosakkan kekuatan robot musuh dengan berkesan? (Pilih semua yang betul)", en: "Which front structure modifications can effectively damage the enemy robot's strength? (Select all that apply)" }, options: [{ ms: "Memasang bilah pemotong keluli berpusing aktif", en: "Installing an active spinning steel cutter blade" }, { ms: "Memasang paku penusuk tajam (spike) berasaskan besi keras", en: "Installing sharp spikes made of hardened iron" }, { ms: "Menggunakan sistem pengungkit (flipper) hidraulik atau pneumatic", en: "Using a hydraulic or pneumatic flipper system" }, { ms: "Memasang hiasan kain satin berwarna merah", en: "Installing red satin fabric decorations" }], answers: [0, 1, 2] },
+        { type: "multi", question: { ms: "Antara peranti berikut, yang manakah dikategorikan sebagai peranti OUTPUT dalam sistem robotik RBT? (Pilih semua yang betul)", en: "Among the following devices, which are categorized as OUTPUT devices in the RBT robotics system? (Select all that apply)" }, options: [{ ms: "Motor DC (DC Motor)", en: "DC Motor" }, { ms: "Buzzer Piezo (Piezo Buzzer)", en: "Piezo Buzzer" }, { ms: "Lampu LED (LED Light)", en: "LED Light" }, { ms: "Penderia Jarak Inframerah (Infrared Sensor)", en: "Infrared Distance Sensor" }], answers: [0, 1, 2] },
+        { type: "multi", question: { ms: "Apakah kepentingan aspek ergonomik dan keselamatan semasa fasa membina reka bentuk luaran robot? (Pilih semua yang betul)", en: "What is the importance of ergonomics and safety aspects during the robot's exterior design building phase? (Select all that apply)" }, options: [{ ms: "Mengurangkan risiko kecederaan tangan kepada pengendali semasa mengangkat robot", en: "Reducing hand injury risks to operators when lifting the robot" }, { ms: "Memastikan tiada bucu tajam yang tidak sengaja mencederakan urus setia", en: "Ensuring no sharp corners accidentally injure event marshals" }, { ms: "Membuat penutup bateri khusus bagi mengelakkan letupan jika litar pintas", en: "Making a dedicated battery cover to prevent explosions during short circuits" }, { ms: "Menjadikan robot bergerak dua kali ganda lebih laju", en: "Making the robot move twice as fast" }], answers: [0, 1, 2] },
+        { type: "multi", question: { ms: "Pilih ralat atau punca lazim yang menyebabkan pengaturcaraan gagal dimuat naik (upload) ke mikropengawal. (Pilih semua yang betul)", en: "Select common errors or causes that make programming fail to upload to the microcontroller. (Select all that apply)" }, options: [{ ms: "Pemilihan jenis papan (Board Type) yang salah pada perisian IDE", en: "Incorrect Board Type selection in the IDE software" }, { ms: "Pilihan Port COM komputer tidak sepadan dengan kabel USB sambungan", en: "Computer COM Port choice does not match the connected USB cable" }, { ms: "Terdapat kesilapan sintaks kod (seperti tertinggal takat bertitik ';')", en: "There is a code syntax error (such as a missing semicolon ';')" }, { ms: "Warna casing robot tidak sepadan dengan warna kod", en: "The robot casing color does not match the code color" }], answers: [0, 1, 2] },
+
+        // Soalan Baharu (Multi Choice)
+        { type: "multi", question: { ms: "Pilih faktor yang menentukan saiz nilai arus (Ampere) yang mengalir dalam litar robot. (Pilih semua yang betul)", en: "Select factors that determine the size of the current value (Ampere) flowing in the robot circuit. (Select all that apply)" }, options: [{ ms: "Beban atau rintangan komponen motor", en: "The load or resistance of the motor components" }, { ms: "Voltan bekalan kuasa bateri", en: "The voltage of the battery power supply" }, { ms: "Warna penebat luaran kabel wayar", en: "The color of the wire cable external insulation" }, { ms: "Panjang antena pemancar kawalan jauh", en: "The antenna length of the remote control transmitter" }], answers: [0, 1] },
+        { type: "multi", question: { ms: "Apakah ciri-ciri yang betul mengenai mikropengawal (microcontroller)? (Pilih semua yang betul)", en: "What are the correct characteristics of a microcontroller? (Select all that apply)" }, options: [{ ms: "Mempunyai CPU, RAM, dan ROM terbina dalam satu cip", en: "Contains a built-in CPU, RAM, and ROM in a single chip" }, { ms: "Boleh diprogramkan berulang kali menggunakan kod komputer", en: "Can be programmed repeatedly using computer codes" }, { ms: "Hanya boleh memproses isyarat analog voltan tinggi sahaja", en: "Can only process high voltage analog signals" }, { ms: "Membekalkan tork mekanikal untuk menggerakkan tayar", en: "Supplies mechanical torque to move tires" }], answers: [0, 1] },
+        { type: "multi", question: { ms: "Antara berikut, yang manakah alat tangan asas RBT yang digunakan untuk penyambungan elektronik? (Pilih semua yang betul)", en: "Which of the following are basic RBT hand tools used for electronic connections? (Select all that apply)" }, options: [{ ms: "Pengalir pateri elektrik (Soldering iron)", en: "Electric soldering iron" }, { ms: "Penjalur wayar (Wire stripper)", en: "Wire stripper" }, { ms: "Gergaji puting manual", en: "Manual tenon saw" }, { ms: "Siku L kayu", en: "Wooden try square" }], answers: [0, 1] },
+        { type: "multi", question: { ms: "Pilih kriteria penilaian lakaran reka bentuk produk yang baik dalam kssm RBT. (Pilih semua yang betul)", en: "Select the evaluation criteria for a good product design sketch in RBT. (Select all that apply)" }, options: [{ ms: "Maklumat dimensi saiz dan fungsi yang jelas", en: "Clear information on size dimensions and function" }, { ms: "Estitika reka bentuk yang menarik dan inovatif", en: "Attractive and innovative design aesthetics" }, { ms: "Nama pengilang asal komponen motor", en: "The original manufacturer's name of the motor" }, { ms: "Senarai penuh kedai borong tempatan", en: "Full list of local wholesale shops" }], answers: [0, 1] },
+        { type: "multi", question: { ms: "Apakah komponen mekanikal yang dikategorikan dalam sistem pemindahan kuasa pusingan? (Pilih semua yang betul)", en: "Which mechanical components are categorized within rotational power transmission systems? (Select all that apply)" }, options: [{ ms: "Gear taji (Spur gear)", en: "Spur gear" }, { ms: "Tali sawat dan takal (Belt and pulley)", en: "Belt and pulley" }, { ms: "Paku paksi rivet kayu", en: "Wooden rivet pin" }, { ms: "Plat keluli mati tetap", en: "Fixed dead steel plate" }], answers: [0, 1] },
+        { type: "multi", question: { ms: "Pilih amalan keselamatan bengkel yang WAJIB dipatuhi semasa fasa menguji robot tempur. (Pilih semua yang betul)", en: "Select workshop safety practices that MUST be followed during the combat robot testing phase. (Select all that apply)" }, options: [{ ms: "Memakai cermin mata keselamatan (safety goggles)", en: "Wearing safety goggles" }, { ms: "Memastikan kawasan sekeliling bebas daripada orang awam", en: "Ensuring the surrounding area is clear of bystanders" }, { ms: "Menguji senjata pusing aktif secara dekat tanpa penutup pelindung", en: "Testing active spinning weapons closely without a protective shield" }, { ms: "Memegang casis robot menggunakan tangan kosong semasa senjata berpusing maksimum", en: "Holding the robot chassis with bare hands during maximum weapon rotation" }], answers: [0, 1] },
+        { type: "multi", question: { ms: "Apakah jenis penderia input yang mengesan parameter fizikal alam sekitar tanpa sentuhan? (Pilih semua yang betul)", en: "Which types of input sensors detect environmental physical parameters without contact? (Select all that apply)" }, options: [{ ms: "Penderia Ultrasonik (Jarak)", en: "Ultrasonic Sensor (Distance)" }, { ms: "Penderia Inframerah (Cahaya/Jarak)", en: "Infrared Sensor (Light/Distance)" }, { ms: "Suis had mekanikal (Limit switch)", en: "Mechanical limit switch" }, { ms: "Suis mikro bumper", en: "Bumper micro switch" }], answers: [0, 1] },
+        { type: "multi", question: { ms: "Pilih sebab utama pemilihan reka bentuk rangka berasaskan bahan gentian karbon (carbon fiber). (Pilih semua yang betul)", en: "Select the main reasons for choosing a frame design based on carbon fiber material. (Select all that apply)" }, options: [{ ms: "Sangat ringan mengurangkan berat total robot", en: "Extremely lightweight, reducing total robot weight" }, { ms: "Mempunyai kekuatan regangan tinggi menyerap hentakan", en: "Has high tensile strength to absorb impacts" }, { ms: "Sangat murah dan mudah dipotong dengan gunting kertas", en: "Very cheap and easy to cut with paper scissors" }, { ms: "Bertindak sebagai pengalir arus elektrik yang sangat baik", en: "Acts as an excellent conductor of electrical current" }], answers: [0, 1] },
+        { type: "multi", question: { ms: "Apakah parameter elektrik utama yang perlu diperiksa menggunakan multimeter pada pek bateri sebelum masuk gelanggang? (Pilih semua yang betul)", en: "What are the main electrical parameters that need to be checked using a multimeter on the battery pack before entering the arena? (Select all that apply)" }, options: [{ ms: "Nilai jumlah voltan keseluruhan bateri (V)", en: "The total voltage value of the battery (V)" }, { ms: "Kesinambungan sambungan penyambung XT60 (Continuity)", en: "The connection continuity of the XT60 connector" }, { ms: "Nilai rintangan dalaman lampu hiasan", en: "The internal resistance value of decorative lights" }, { ms: "Kapasiti total mAh bateri secara dinamik", en: "The dynamic total mAh capacity of the battery" }], answers: [0, 1] },
+        { type: "multi", question: { ms: "Pilih kaedah yang betul untuk menaikkan nilai tork akhir tanpa menukar jenis motor pemanduan. (Pilih semua yang betul)", en: "Select the correct methods to increase the final torque without changing the drive motor type. (Select all that apply)" }, options: [{ ms: "Menurunkan nisbah saiz gear pemacu kepada gear yang dipacu (gearbox ratio tinggi)", en: "Lowering the drive gear to driven gear ratio (high gearbox ratio)" }, { ms: "Menggunakan diameter tayar yang lebih kecil", en: "Using a smaller tire diameter" }, { ms: "Meningkatkan kelajuan PWM tanpa had mekanikal", en: "Increasing PWM speed without mechanical limits" }, { ms: "Menanggalkan semua gigi gear dalam sistem", en: "Removing all gear teeth in the system" }], answers: [0, 1] },
+        { type: "multi", question: { ms: "Dalam reka bentuk sistem mekanikal RBT, apakah kegunaan galas bebola (ball bearing)? (Pilih semua yang betul)", en: "In RBT mechanical system design, what are the uses of ball bearings? (Select all that apply)" }, options: [{ ms: "Mengurangkan geseran pada aci pusingan", en: "Reducing friction on rotating shafts" }, { ms: "Menyokong beban jejari dan paksi komponen roda", en: "Supporting radial and axial loads of wheel components" }, { ms: "Meningkatkan nilai voltan litar elektrik hiliran", en: "Increasing the voltage value of downstream electrical circuits" }, { ms: "Menukar jenis arus elektrik daripada DC ke AC", en: "Converting electrical current type from DC to AC" }], answers: [0, 1] },
+        { type: "multi", question: { ms: "Apakah jenis kerosakan elektrik yang sering berlaku akibat pendawaian longgar semasa getaran melampau? (Pilih semua yang betul)", en: "What types of electrical failures commonly occur due to loose wiring during extreme vibrations? (Select all that apply)" }, options: [{ ms: "Litar terbuka (Open circuit) secara tiba-tiba", en: "Sudden open circuit" }, { ms: "Litar pintas seketika akibat wayar bersentuh rangka besi", en: "Intermittent short circuit due to wires touching the iron frame" }, { ms: "Kenaikan kapasiti mAh bateri secara mendadak", en: "Sudden increase of battery mAh capacity" }, { ms: "Penurunan frekuensi radio gelombang pemancar", en: "Decrease of transmitter wave radio frequency" }], answers: [0, 1] },
+        { type: "multi", question: { ms: "Pilih sistem pemanduan yang memberikan tindak balas pusingan setempat (zero turning radius) yang pantas. (Pilih semua yang betul)", en: "Select drive systems that provide rapid zero turning radius responses. (Select all that apply)" }, options: [{ ms: "Sistem pemanduan pembezaan dua motor bebas (Differential Drive)", en: "Independent two-motor differential drive system" }, { ms: "Sistem roda Mecanum dengan pacuan 4 motor berasingan", en: "Mecanum wheel system with 4 independent motor drives" }, { ms: "Sistem pemanduan tunggal gandin hadapan tegar", en: "Single rigid front axle drive system" }, { ms: "Sistem stereng Ackermann kereta biasa", en: "Standard car Ackermann steering system" }], answers: [0, 1] },
+        { type: "multi", question: { ms: "Apakah kelebihan struktur robot yang menggunakan cantuman rivet berbanding skru biasa? (Pilih semua yang betul)", en: "What are the advantages of a robot structure using rivet joints compared to standard screws? (Select all that apply)" }, options: [{ ms: "Sambungan kekal yang sangat tahan daripada longgar akibat getaran", en: "Permanent connections highly resistant to loosening from vibrations" }, { ms: "Profil cantuman yang nipis dan jimat ruang casis", en: "Thin joint profiles that save chassis space" }, { ms: "Sangat mudah dibuka pasang menggunakan pemutar skru biasa", en: "Very easy to disassemble using standard screwdrivers" }, { ms: "Menambah kelajuan pemprosesan data cip mikropengawal", en: "Increasing the data processing speed of the microcontroller chip" }], answers: [0, 1] },
+        { type: "multi", question: { ms: "Pilih komponen elektrik yang boleh digunakan untuk memutuskan litar kuasa secara kawalan elektronik. (Pilih semua yang betul)", en: "Select electrical components that can be used to disconnect a power circuit via electronic control. (Select all that apply)" }, options: [{ ms: "Geganti (Relay)", en: "Relay" }, { ms: "Transistor MOSFET kuasa tinggi", en: "High power MOSFET Transistor" }, { ms: "Suis togel manual", en: "Manual toggle switch" }, { ms: "Pemutus litar mekanikal paku", en: "Mechanical pin circuit breaker" }], answers: [0, 1] },
+        { type: "multi", question: { ms: "Dalam kssm RBT, projek reka bentuk sistem akuaponik menggabungkan bidang...", en: "In RBT KSSM, an aquaponics system design project combines the fields of..." }, options: [{ ms: "Reka bentuk elektrik / elektronik", en: "Electrical / electronic design" }, { ms: "Reka bentuk mekanikal / sistem saluran", en: "Mechanical design / piping systems" }, { ms: "Reka bentuk fesyen pakaian", en: "Fashion apparel design" }, { ms: "Reka bentuk masakan bakeri", en: "Bakery culinary design" }], answers: [0, 1] },
+
+        // === FILL IN THE BLANK (Soalan 77 - 100) ===
+        { type: "blank", question: { ms: "Sistem gear penurunan mengorbankan kelajuan putaran motor demi meningkatkan daya ____ robot.", en: "A reduction gear system sacrifices motor rotational speed to increase the robot's ____." }, answerText: { ms: "tork", en: "torque" } },
+        { type: "blank", question: { ms: "Bateri LiPo mempunyai kadar pelepasan arus yang tinggi yang dinyatakan dalam unit huruf ____.", en: "LiPo batteries have a high current discharge rate expressed in the unit of the letter ____." }, answerText: { ms: "c", en: "c" } },
+        { type: "blank", question: { ms: "Untuk mengelakkan permukaan besi robot daripada berkarat dan mengekalkan ketahanan lasak, ia perlu disembur cat ____.", en: "To prevent the robot's iron surface from rusting and maintain durability, it needs to be sprayed with ____ paint." }, answerText: { ms: "pelindung", en: "protective" } },
+        { type: "blank", question: { ms: "Isyarat ____ digunakan untuk mengawal kelajuan motor DC melalui pemacu motor.", en: "The ____ signal is used to control the speed of a DC motor via a motor driver." }, answerText: { ms: "pwm", en: "pwm" } },
+        { type: "blank", question: { ms: "Bahan logam ____ ialah pilihan popular rangka robot kerana sifatnya yang ringan tetapi kuat.", en: "The metal material ____ is a popular choice for robot frames due to its lightweight yet strong properties." }, answerText: { ms: "aluminium", en: "aluminium" } },
+        { type: "blank", question: { ms: "Nat kunci jenis ____ mempunyai gegelang nilon di dalamnya untuk mengelakkan skru longgar akibat getaran.", en: "A ____ type lock nut has a nylon ring inside to prevent screws from loosening due to vibrations." }, answerText: { ms: "nyloc", en: "nyloc" } },
+        { type: "blank", question: { ms: "Untuk mengurangkan geseran pada aci roda supaya robot bergerak lebih laju, kita mesti memasang ____ bebola.", en: "To reduce friction on the wheel shaft so that the robot moves faster, we must install ball ____." }, answerText: { ms: "galas", en: "bearings" } },
+        { type: "blank", question: { ms: "Pusat ____ yang rendah sangat penting bagi memastikan robot tempur tidak mudah terbalik.", en: "A low center of ____ is crucial to ensure a combat robot does not easily flip over." }, answerText: { ms: "graviti", en: "gravity" } },
+        { type: "blank", question: { ms: "Casing berbahan ____ adalah plastik lutsinar tebal yang sangat tahan lasak daripada serpihan impak.", en: "A casing made of ____ is a thick transparent plastic that is extremely durable against impact debris." }, answerText: { ms: "polikarbonat", en: "polycarbonate" } },
+        { type: "blank", question: { ms: "Cecair pengunci ____ disapu pada ulir skru besi untuk mengetatkan sambungan mekanikal robot.", en: "____ fluid is applied to metal screw threads to tighten the robot's mechanical connections." }, answerText: { ms: "benang", en: "threadlocker" } },
+        { type: "blank", question: { ms: "Peranti input yang paling popular untuk mengesan jarak halangan hadapan secara gelombang bunyi ialah penderia ____.", en: "The most popular input device to detect front obstacle distance using sound waves is the ____ sensor." }, answerText: { ms: "ultrasonik", en: "ultrasonic" } },
+        { type: "blank", question: { ms: "Komponen mekanikal berpusing yang mempunyai 'gigi' dan digunakan untuk menukar arah atau kelajuan ialah ____.", en: "A rotating mechanical component that has 'teeth' and is used to change direction or speed is a ____." }, answerText: { ms: "gear", en: "gear" } },
+        
+        // Soalan Baharu (Fill in the Blank)
+        { type: "blank", question: { ms: "Komponen elektronik yang membenarkan arus mengalir satu arah sahaja dipanggil ____.", en: "The electronic component that allows current to flow in one direction only is called a ____." }, answerText: { ms: "diod", en: "diode" } },
+        { type: "blank", question: { ms: "Dalam silibus RBT, mikropengawal menerima isyarat daripada peranti ____ sebelum memprosesnya.", en: "In the RBT syllabus, a microcontroller receives signals from an ____ device before processing it." }, answerText: { ms: "input", en: "input" } },
+        { type: "blank", question: { ms: "Alat tangan yang digunakan untuk mencairkan timah semasa kerja pemasangan komponen elektronik ialah ____ pateri.", en: "The hand tool used to melt lead during electronic component installation work is a soldering ____." }, answerText: { ms: "besi", en: "iron" } },
+        { type: "blank", question: { ms: "Plastik kejuruteraan jenis ____ amat popular sebagai bahan roda dan struktur kerana tahan lasak dan licin.", en: "The engineering plastic type ____ is very popular as wheel and structural material due to its durability and smoothness." }, answerText: { ms: "delrin", en: "delrin" } },
+        { type: "blank", question: { ms: "Aspek reka bentuk luaran yang mementingkan keselesaan dan keselamatan pengguna dipanggil ____.", en: "The external design aspect that emphasizes user comfort and safety is called ____." }, answerText: { ms: "ergonomik", en: "ergonomics" } },
+        { type: "blank", question: { ms: "Jika dua gear bercantun secara terus, gear dipacu akan berpusing pada arah yang ____ daripada gear pemacu.", en: "If two gears mesh directly, the driven gear will rotate in the ____ direction of the drive gear." }, answerText: { ms: "berlawanan", en: "opposite" } },
+        { type: "blank", question: { ms: "Unit ukuran bagi rintangan elektrik ialah ____.", en: "The measurement unit for electrical resistance is ____." }, answerText: { ms: "ohm", en: "ohm" } },
+        { type: "blank", question: { ms: "Komponen pemandu litar yang bertindak sebagai suis elektronik berkelajuan tinggi untuk mengawal motor ialah ____.", en: "The circuit driver component that acts as a high-speed electronic switch to control motors is a ____." }, answerText: { ms: "transistor", en: "transistor" } },
+        { type: "blank", question: { ms: "Sistem pengaturcaraan Arduino ditulis berasaskan bahasa sintaks ____.", en: "The Arduino programming system is written based on the ____ syntax language." }, answerText: { ms: "c++", en: "c++" } },
+        { type: "blank", question: { ms: "Alat pengukur elektrik yang digunakan untuk menguji kesinambungan litar terputus ialah ____.", en: "The electrical measuring tool used to test the continuity of a broken circuit is a ____." }, answerText: { ms: "multimeter", en: "multimeter" } },
+        { type: "blank", question: { ms: "Bahan komposit gentian ____ mempunyai kekuatan mekanikal ekstrem tetapi sangat ringan.", en: "The ____ fiber composite material has extreme mechanical strength but is lightweight." }, answerText: { ms: "karbon", en: "carbon" } },
+        { type: "blank", question: { ms: "Struktur rangka segi ____ atau triangulasi digunakan untuk mengedarkan daya hentakan secara efisien.", en: "A ____-angled frame structure or triangulation is used to distribute impact forces efficiently." }, answerText: { ms: "tiga", en: "three" } }
+    ];
+
+    const products = [
+        { id: 1, name: "Cable ties (10 pieces)", price: 5 },
+        { id: 2, name: "Corrugated board A5", price: 10 },
+        { id: 3, name: "Cardboard A5", price: 8 },
+        { id: 4, name: "Pita pelekat", price: 5 },
+        { id: 5, name: "Double side tape", price: 5 },
+        { id: 6, name: "Popsicles (1 ikat)", price: 5 },
+        { id: 7, name: "3 secs instant glue", price: 10 },
+        { id: 8, name: "Kotak Sarang Telur Terpakai", price: 10 },
+        { id: 9, name: "Masking Tape", price: 5 },
+        { id: 10, name: "Plate Besi", price: 20 },
+    ];
+
+    let currentQuestion = 0;
+    let quizScore = 0;
+    let storeScore = 0;
+    let timeLeft = 1500;
+    let timerInterval = null;
+    let shuffledQuiz = [];
+    let quizStartTime = 0;
+    let elapsedTime = "00:00";
+    let selectedAnswers = [];
+    let selectedAnswer = null;
+    let currentLang = 'ms';
+    let schoolName = '';
+    let groupName = '';
+    let stateName = '';
+    let cart = {};
+    const START_POINTS = 100;
+
+    // Masukkan URL Google Apps Script Web App anda di sini
+    const GOOGLE_SHEET_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxvI8jIkvbBTtVDAzRegmjDLsyLjH2e0O9bctkhSz7Fyfl0issW1vPI6dWuvedpjRyYTQ/exec';
+
+    function setLanguage(lang) {
+        currentLang = lang;
+        document.getElementById('welcomeTitle').textContent = lang === 'ms' ? 'Selamat Datang' : 'Welcome';
+        document.getElementById('welcomeText').textContent = lang === 'ms' ? 'Peringkat Saringan Cabaran Robot Tempur' : 'Screening Level Robot Tempur Challenge';
+        document.getElementById('startBtn').textContent = lang === 'ms' ? 'Mula' : 'Start';
+        document.getElementById('schoolLabel').textContent = lang === 'ms' ? 'Nama Sekolah' : 'School Name';
+        document.getElementById('groupLabel').textContent = lang === 'ms' ? 'Nama Kumpulan' : 'Group Name';
+        document.getElementById('stateLabel').textContent = lang === 'ms' ? 'Negeri / Wilayah' : 'State / Federal Territory';
+        document.getElementById('schoolName').placeholder = lang === 'ms' ? 'Contoh: SMK Jalan 1' : 'Example: SMK Jalan 1';
+        document.getElementById('groupName').placeholder = lang === 'ms' ? 'Contoh: Robot Cemerlang' : 'Example: Excellent Robot';
+        document.getElementById('stateName').options[0].text = lang === 'ms' ? '-- Sila pilih --' : '-- Please select --';
+        document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.lang-btn')[lang === 'ms' ? 0 : 1].classList.add('active');
+    }
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function prepareQuiz() {
+        const singles = quizData.filter(q => q.type === "single");
+        const multis = quizData.filter(q => q.type === "multi");
+        const blanks = quizData.filter(q => q.type === "blank");
+
+        // Memilih mengikut ketetapan: 15 single + 15 multi + 10 isi tempat kosong
+        const selectedQuestions = [
+            ...shuffleArray([...singles]).slice(0, 15),
+            ...shuffleArray([...multis]).slice(0, 15),
+            ...shuffleArray([...blanks]).slice(0, 10)
+        ];
+
+        shuffledQuiz = selectedQuestions.map(q => {
+            if (q.type === "single" || q.type === "multi") {
+                const optionObjects = q.options.map((option, index) => ({
+                    text: option,
+                    isCorrect: q.type === "single" ? index === q.answer : q.answers.includes(index)
+                }));
+                shuffleArray(optionObjects);
+                return { ...q, options: optionObjects };
+            }
+            return { ...q };
+        });
+
+        shuffleArray(shuffledQuiz);
+    }
+
+    function startQuiz() {
+        schoolName = document.getElementById('schoolName').value.trim();
+        groupName = document.getElementById('groupName').value.trim();
+        stateName = document.getElementById('stateName').value.trim();
+        prepareQuiz();
+        currentQuestion = 0;
+        quizScore = 0;
+        timeLeft = 1500;
+        quizStartTime = Date.now();
+
+        document.getElementById('quiz-box').innerHTML = `
+            <div class="header">
+                <div class="question-number" id="questionNumber"></div>
+                <div class="timer" id="timer">25:00</div>
+            </div>
+            <div class="question-text" id="questionText"></div>
+            <div id="hint" class="hint"></div>
+            <div class="options-container" id="optionsContainer"></div>
+            <div class="footer">
+                <button class="next-btn" id="nextBtn" disabled onclick="nextQuestion()">${currentLang === 'ms' ? 'Seterusnya' : 'Next'}</button>
+            </div>
+        `;
+        showQuestion();
+        timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    function updateTimer() {
+        timeLeft--;
+        const minutes = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+        const seconds = String(timeLeft % 60).padStart(2, '0');
+        document.getElementById('timer').textContent = `${minutes}:${seconds}`;
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            goToStore();
+        }
+    }
+
+    function showQuestion() {
+        selectedAnswer = null;
+        selectedAnswers = [];
+        document.getElementById('nextBtn').disabled = true;
+        const data = shuffledQuiz[currentQuestion];
+        document.getElementById('questionNumber').textContent = currentLang === 'ms'
+            ? `Soalan ${currentQuestion + 1} / ${shuffledQuiz.length}`
+            : `Question ${currentQuestion + 1} / ${shuffledQuiz.length}`;
+        document.getElementById('questionText').textContent = data.question[currentLang];
+
+        const hint = document.getElementById('hint');
+        const optionsContainer = document.getElementById('optionsContainer');
+        optionsContainer.innerHTML = '';
+
+        if (data.type === "multi") {
+            hint.textContent = currentLang === 'ms' ? "Pilih semua jawapan yang betul (Lebih daripada satu)." : "Select all correct answers (More than one).";
+            data.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'option-btn';
+                button.textContent = option.text[currentLang];
+                button.onclick = () => toggleMultiAnswer(index, button);
+                optionsContainer.appendChild(button);
+            });
+        } else if (data.type === "blank") {
+            hint.textContent = currentLang === 'ms' ? "Isikan jawapan kata kunci yang tepat pada ruang kosong." : "Fill in the exact keyword blank.";
+            optionsContainer.innerHTML = `<input type="text" id="blankInput" class="blank-input" placeholder="${currentLang === 'ms' ? 'Taip jawapan anda...' : 'Type your answer...'}">`;
+            document.getElementById('nextBtn').disabled = false;
+            document.getElementById('blankInput').addEventListener('input', () => {
+                document.getElementById('nextBtn').disabled = document.getElementById('blankInput').value.trim() === '';
+            });
+        } else {
+            hint.textContent = "";
+            data.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'option-btn';
+                button.textContent = option.text[currentLang];
+                button.onclick = () => selectAnswer(index, button);
+                optionsContainer.appendChild(button);
+            });
+        }
+    }
+
+    function selectAnswer(index, button) {
+        selectedAnswer = index;
+        document.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('selected'));
+        button.classList.add('selected');
+        document.getElementById('nextBtn').disabled = false;
+    }
+
+    function toggleMultiAnswer(index, button) {
+        if (selectedAnswers.includes(index)) {
+            selectedAnswers = selectedAnswers.filter(i => i !== index);
+            button.classList.remove('selected');
+        } else {
+            selectedAnswers.push(index);
+            button.classList.add('selected');
+        }
+        document.getElementById('nextBtn').disabled = selectedAnswers.length === 0;
+    }
+
+    function normalizeText(text) {
+        return text.toLowerCase().replace(/\s+/g, ' ').trim();
+    }
+
+    function nextQuestion() {
+        const data = shuffledQuiz[currentQuestion];
+        if (data.type === "single") {
+            if (data.options[selectedAnswer].isCorrect) quizScore++;
+        } else if (data.type === "multi") {
+            const correctIndexes = data.options.map((opt, idx) => opt.isCorrect ? idx : -1).filter(idx => idx !== -1).sort((a, b) => a - b);
+            const picked = [...selectedAnswers].sort((a, b) => a - b);
+            if (JSON.stringify(correctIndexes) === JSON.stringify(picked)) quizScore++;
+        } else if (data.type === "blank") {
+            const userAnswer = normalizeText(document.getElementById('blankInput').value);
+            const correctMs = normalizeText(data.answerText.ms);
+            const correctEn = normalizeText(data.answerText.en);
+            if (userAnswer === correctMs || userAnswer === correctEn) quizScore++;
+        }
+
+        currentQuestion++;
+        if (currentQuestion < shuffledQuiz.length) {
+            showQuestion();
+        } else {
+            clearInterval(timerInterval);
+            elapsedTime = getElapsedTime();
+            goToStore();
+        }
+    }
+
+    function getElapsedTime() {
+        const totalSeconds = Math.floor((Date.now() - quizStartTime) / 1000);
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    function submitToGoogleSheetDirectly(data) {
+        if (!GOOGLE_SHEET_WEBAPP_URL) {
+            console.warn('URL Google Apps Script belum dikonfigurasikan.');
+            return;
+        }
+        
+        const params = new URLSearchParams({
+            school: data.school,
+            group: data.group,
+            state: data.state,
+            quizScore: data.quizScore,
+            storeScore: data.storeScore,
+            totalMarks: data.totalMarks,
+            elapsedTime: data.elapsedTime
+        });
+
+        const finalUrl = GOOGLE_SHEET_WEBAPP_URL + "?" + params.toString();
+
+        const script = document.createElement('script');
+        script.src = finalUrl;
+        
+        script.onload = () => document.body.removeChild(script);
+        script.onerror = () => document.body.removeChild(script);
+        
+        document.body.appendChild(script);
+    }
+
+    function goToStore() {
+        document.getElementById('container-box').classList.add('store-layout');
+
+        document.getElementById('quiz-box').innerHTML = `
+            <header class="store-header">
+                <h1>Kedai Bahan Malaysia Techlympics</h1>
+                <p>Fasa Strategi: Belanja mata anda untuk membeli keperluan mekanikal. Semakin rendah baki (banyak aset diguna), semakin tinggi markah bonus strategi (Maksimum 20 Markah)!</p>
+            </header>
+
+            <div class="dashboard">
+                <div class="stat-card spent">
+                    <div>Total Kos Bahan</div>
+                    <div class="stat-value" id="total-spent">0 MT</div>
+                </div>
+                <div class="stat-card balance">
+                    <div>Baki Mata</div>
+                    <div class="stat-value" id="total-balance">100 MT</div>
+                </div>
+            </div>
+
+            <div id="error-msg" class="alert alert-danger" style="display: none;"></div>
+
+            <div class="main-content">
+                <div class="store-section">
+                    <h3>Senarai Bahan & Alat</h3>
+                    <div class="item-list" id="store-items"></div>
+                </div>
+
+                <div class="cart-section">
+                    <h3>Troli Saya</h3>
+                    <div id="cart-container">
+                        <p style="color: #888; text-align: center;" id="empty-cart-msg">Troli kosong. Sila pilih barang.</p>
+                    </div>
+                    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+                    <button class="btn checkout-btn" id="btn-checkout" onclick="checkoutStore()">Sahkan & Lihat Hasil Total</button>
+                </div>
+            </div>
+        `;
+        displayStore();
+    }
+
+    function displayStore() {
+        const storeContainer = document.getElementById('store-items');
+        storeContainer.innerHTML = '';
+        products.forEach(product => {
+            storeContainer.innerHTML += `
+                <div class="item-card">
+                    <div class="item-name">${product.name}</div>
+                    <div class="item-price">${product.price} MT</div>
+                    <button class="btn" onclick="addToCart(${product.id})">Tambah</button>
+                </div>
+            `;
+        });
+    }
+
+    function addToCart(id) {
+        if (cart[id]) cart[id]++;
+        else cart[id] = 1;
+        updateCalculation();
+    }
+
+    function changeQuantity(id, amount) {
+        if (!cart[id]) return;
+        cart[id] += amount;
+        if (cart[id] <= 0) delete cart[id];
+        updateCalculation();
+    }
+
+    function updateCalculation() {
+        let totalSpent = 0;
+
+        for (const id in cart) {
+            const product = products.find(p => p.id == id);
+            totalSpent += product.price * cart[id];
+        }
+
+        let balance = START_POINTS - totalSpent;
+
+        if (balance >= 0) {
+            storeScore = ((100 - balance) / 100) * 20;
+        } else {
+            storeScore = 0;
+        }
+
+        document.getElementById('total-spent').innerText = totalSpent + " MT";
+        document.getElementById('total-balance').innerText = balance + " MT";
+
+        const errorMsg = document.getElementById('error-msg');
+        const checkoutBtn = document.getElementById('btn-checkout');
+        const balanceCard = document.querySelector('.stat-card.balance');
+
+        if (balance < 0) {
+            errorMsg.innerText = "⚠️ Amaran: Mata tidak mencukupi! Sila kurangkan kuantiti bahan.";
+            errorMsg.style.display = "block";
+            checkoutBtn.disabled = true;
+            balanceCard.style.borderTopColor = "var(--danger)";
+        } else {
+            errorMsg.style.display = "none";
+            checkoutBtn.disabled = false;
+            balanceCard.style.borderTopColor = "var(--secondary)";
+        }
+
+        renderCart();
+    }
+
+    function renderCart() {
+        const cartContainer = document.getElementById('cart-container');
+        cartContainer.innerHTML = '';
+
+        let hasItems = false;
+
+        for (const id in cart) {
+            hasItems = true;
+            const product = products.find(p => p.id == id);
+            cartContainer.innerHTML += `
+                <div class="cart-item">
+                    <div class="cart-item-info">
+                        <strong>${product.name}</strong><br>
+                        <small>${product.price} MT x ${cart[id]} = ${product.price * cart[id]} MT</small>
+                    </div>
+                    <div class="quantity-control">
+                        <button class="btn btn-qty btn-danger" onclick="changeQuantity(${id}, -1)">-</button>
+                        <span>${cart[id]}</span>
+                        <button class="btn btn-qty" onclick="changeQuantity(${id}, 1)">+</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        if (!hasItems) {
+            cartContainer.innerHTML = `<p style="color: #888; text-align: center;" id="empty-cart-msg">Troli kosong. Sila pilih barang.</p>`;
+        }
+    }
+
+    function checkoutStore() {
+        document.getElementById('container-box').classList.remove('store-layout');
+
+        const totalMarks = quizScore + storeScore;
+
+        submitToGoogleSheetDirectly({
+            school: schoolName,
+            group: groupName,
+            state: stateName,
+            quizScore: quizScore,
+            storeScore: storeScore,
+            totalMarks: Number(totalMarks.toFixed(2)),
+            elapsedTime: elapsedTime
+        });
+
+        document.getElementById('container-box').innerHTML = `
+            <div class="result-screen">
+                <h2>${currentLang === 'ms' ? 'TAMAT' : 'END'}</h2>
+                <div style="text-align: left; background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid var(--primary);">
+                    <p><strong>${currentLang === 'ms' ? 'Sekolah' : 'School'}:</strong> ${schoolName || '-'}</p>
+                    <p><strong>${currentLang === 'ms' ? 'Kumpulan' : 'Group'}:</strong> ${groupName || '-'}</p>
+                    <p><strong>${currentLang === 'ms' ? 'Negeri / Wilayah' : 'State / Federal Territory'}:</strong> ${stateName || '-'}</p>
+                    <p><strong>${currentLang === 'ms' ? 'Masa Diambil Saringan' : 'Screening Time Taken'}:</strong> ${elapsedTime}</p>
+                </div>
+                <p style="color: #666; font-style: italic; margin-top: 15px;">Tahniah anda telah selesai Peringkat Saringan Robot Tempur Malaysia Techlympics!</p>
+            </div>
+        `;
+    }
+
+    window.setLanguage = setLanguage;
+    window.startQuiz = startQuiz;
+    window.nextQuestion = nextQuestion;
+    window.goToStore = goToStore;
+    window.addToCart = addToCart;
+    window.changeQuantity = changeQuantity;
+    window.checkoutStore = checkoutStore;
+
+    setLanguage('ms');
+</script>
+
+</body>
+</html>
